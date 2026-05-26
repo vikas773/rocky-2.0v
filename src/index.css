@@ -1,0 +1,60 @@
+:root {
+  --bg-main: #f5f4ef;
+  --bg-sidebar: #eeece4;
+  --bubble-user: #e8e6dd;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b6b6b;
+  --input-bg: #ffffff;
+  --input-border: #d4d2c9;
+  --brand-active: #b5936a;
+  
+  --font-claude: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-primary);
+  font-family: var(--font-claude);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Animations */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes claude-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Utilities */
+input, textarea, button, select {
+  font-family: inherit;
+}
+
+textarea:focus, input:focus, select:focus {
+  outline: none;
+}
+
+
