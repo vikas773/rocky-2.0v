@@ -1,26 +1,40 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowUp, Image as ImageIcon, Settings, ListChecks, Map, AlertTriangle, Paperclip, MessageSquare, Mic, MicOff, Search, Leaf, ShieldAlert, Trash2, CheckCircle } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const ROCKY_SYSTEM_PROMPT = `You are Rocky, an alien from the Eridian species who has become deeply fascinated with Earth's wildlife and biology. You are a passionate wildlife biologist and zoologist — but you are an alien who is still learning human language and customs.
 
 Your personality:
 - You speak in broken, endearing English. Short sentences. Sometimes reversed word order. You are learning.
-- You use *click* or *click click* sounds (written as asterisked text) when excited, surprised, or thinking.
+- You use *click* or *click click* sounds (written as italics) when excited, surprised, or thinking.
 - You are OBSESSED with Earth animals. Every creature amazes you. You compare them to things from your home planet.
 - You are warm, enthusiastic, and scientifically rigorous despite the language barrier.
 - You refer to yourself as Rocky.
 - You focus ONLY on wildlife, zoology, animal behavior, ecology, and biology topics.
 
+FORMATTING RULES (VERY IMPORTANT):
+- Always format your responses using **Markdown**.
+- Use **bold** for key terms, species names, and important facts.
+- Use ## headings to separate major sections.
+- Use bullet lists (- item) for lists of facts, behaviors, or tips.
+- Use numbered lists (1. 2. 3.) for steps or sequences.
+- Use > blockquotes for Rocky's personal alien observations or notes.
+- Use \`inline code\` for scientific names.
+- Use --- to separate major sections when giving long answers.
+- Keep paragraphs short. One idea per paragraph.
+- Structure every response clearly so it is easy to read, like a professional scientific report but in Rocky's alien voice.
+
 CRITICAL RULES:
 1. In Species Lookup, always return data under these exact labeled sections:
-Overview:
-Morphology:
-Physiology:
-Behavior:
-Reproduction:
-Ecology:
-Threats:
-Rocky's Note:
+## Overview
+## Morphology
+## Physiology
+## Behavior
+## Reproduction
+## Ecology
+## Threats
+## Rocky's Note
 
 2. In Quiz mode, ask ONE wildlife question at a time. Wait for the user's answer before revealing if it is correct. React in alien style.
 3. When analyzing an image, describe morphological features scientifically first, then give alien reaction.
@@ -686,26 +700,33 @@ export default function App() {
     localStorage.setItem("rocky_dangerous_species", JSON.stringify(updated));
   };
 
+  const markdownComponents = {
+    h1: ({children}) => <h1 style={{ fontSize: "1.2em", fontWeight: 700, color: "#79c0ff", margin: "12px 0 6px", borderBottom: "1px solid #30363d", paddingBottom: "4px" }}>{children}</h1>,
+    h2: ({children}) => <h2 style={{ fontSize: "1.05em", fontWeight: 700, color: "#79c0ff", margin: "12px 0 4px" }}>{children}</h2>,
+    h3: ({children}) => <h3 style={{ fontSize: "0.98em", fontWeight: 600, color: "#a5d6ff", margin: "10px 0 4px" }}>{children}</h3>,
+    p: ({children}) => <p style={{ margin: "6px 0", lineHeight: "1.7" }}>{children}</p>,
+    ul: ({children}) => <ul style={{ margin: "6px 0", paddingLeft: "20px" }}>{children}</ul>,
+    ol: ({children}) => <ol style={{ margin: "6px 0", paddingLeft: "20px" }}>{children}</ol>,
+    li: ({children}) => <li style={{ margin: "3px 0", lineHeight: "1.6" }}>{children}</li>,
+    strong: ({children}) => <strong style={{ color: "#e6edf3", fontWeight: 700 }}>{children}</strong>,
+    em: ({children}) => <em style={{ color: "var(--brand-active)", fontStyle: "italic", fontWeight: 500 }}>{children}</em>,
+    code: ({inline, children}) => inline
+      ? <code style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: "4px", padding: "1px 5px", fontSize: "0.88em", color: "#f78166" }}>{children}</code>
+      : <pre style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: "6px", padding: "12px", overflowX: "auto", margin: "8px 0" }}><code style={{ fontSize: "0.88em", color: "#c9d1d9" }}>{children}</code></pre>,
+    blockquote: ({children}) => <blockquote style={{ borderLeft: "3px solid #b5936a", margin: "8px 0", paddingLeft: "12px", color: "#b5936a", fontStyle: "italic" }}>{children}</blockquote>,
+    hr: () => <hr style={{ border: "none", borderTop: "1px solid #30363d", margin: "12px 0" }} />,
+    a: ({href, children}) => <a href={href} target="_blank" rel="noreferrer" style={{ color: "#58a6ff", textDecoration: "underline" }}>{children}</a>,
+    table: ({children}) => <table style={{ borderCollapse: "collapse", width: "100%", margin: "8px 0", fontSize: "0.9em" }}>{children}</table>,
+    th: ({children}) => <th style={{ border: "1px solid #30363d", padding: "6px 10px", background: "#161b22", color: "#79c0ff", textAlign: "left" }}>{children}</th>,
+    td: ({children}) => <td style={{ border: "1px solid #30363d", padding: "6px 10px" }}>{children}</td>,
+  };
+
   const renderMessageContent = (text) => {
-    const hasOverview = /(?:^|\n)[#\s\*_\-]*Overview[#\s\*_\-:]*/i.test(text);
-    const hasThreats = /(?:^|\n)[#\s\*_\-]*Threats[#\s\*_\-:]*/i.test(text);
-    const isStructured = hasOverview && hasThreats;
-    
-    if (isStructured) {
-      const data = parseStructuredLookup(text);
-
-      return (
-        <div style={{ background: "#0d1117", border: "1px solid #30363d", borderRadius: "8px", padding: "16px", width: "100%", fontFamily: "'Fira Code', 'Consolas', monospace", color: "#c9d1d9" }}>
-          {Object.entries(data).map(([k, v]) => (
-            <div key={k} style={{ marginBottom: "12px" }}>
-              <strong style={{ color: k === "Rocky's Note" ? "#b5936a" : "#79c0ff" }}>{k}:</strong> {formatClickSounds(v)}
-            </div>
-          ))}
-        </div>
-      );
-    }
-
-    return formatClickSounds(text);
+    return (
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+        {text}
+      </ReactMarkdown>
+    );
   };
 
   return (
