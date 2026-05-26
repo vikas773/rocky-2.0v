@@ -1017,8 +1017,7 @@ export default function App() {
         </button>
       </header>
 
-      {/* Mode Switcher */}
-      <div style={{ display: "flex", gap: "8px", padding: "12px 24px", background: "var(--bg-main)", borderBottom: "1px solid var(--border-color)", overflowX: "auto" }}>
+      <div className="mode-switcher-container">
         {[
           { id: "chat", icon: <MessageSquare size={16}/>, label: "Chat" },
           { id: "lookup", icon: <Search size={16}/>, label: "Species" },

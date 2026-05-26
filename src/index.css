@@ -105,5 +105,23 @@ textarea:focus, input:focus, select:focus {
   }
 }
 
+/* Mode Switcher Layout */
+.mode-switcher-container {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--bg-main);
+  border-bottom: 1px solid var(--border-color);
+  overflow-x: auto;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .mode-switcher-container {
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
 
 
