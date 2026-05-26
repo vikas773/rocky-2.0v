@@ -7,6 +7,8 @@
   --input-bg: #ffffff;
   --input-border: #d4d2c9;
   --brand-active: #b5936a;
+  --border-color: #d4d2c9;
+  --bg-header: #eeece4;
   
   --font-claude: "Söhne", ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
@@ -56,5 +58,52 @@ input, textarea, button, select {
 textarea:focus, input:focus, select:focus {
   outline: none;
 }
+
+/* Interactive SVG World Map */
+.world-map-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #f7f6f0;
+  border-radius: 12px;
+}
+
+.map-region-group {
+  cursor: pointer;
+  outline: none;
+}
+
+.map-region-group path {
+  fill: #e8e6dd;
+  stroke: #ffffff;
+  stroke-width: 0.8;
+  transition: fill 0.3s ease, stroke 0.3s ease, transform 0.2s ease, filter 0.3s ease;
+}
+
+.map-region-group:hover path {
+  fill: #d5ccb6 !important;
+  stroke: var(--brand-active);
+  stroke-width: 1.2;
+}
+
+.map-region-group.selected path {
+  fill: var(--brand-active) !important;
+  stroke: #ffffff;
+  stroke-width: 1.5;
+}
+
+/* Responsive Map Grid */
+.map-grid-responsive {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 900px) {
+  .map-grid-responsive {
+    grid-template-columns: 1.2fr 1.0fr;
+  }
+}
+
 
 

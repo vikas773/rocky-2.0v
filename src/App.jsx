@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, Image as ImageIcon, Settings, ListChecks, Map, AlertTriangle, Paperclip, MessageSquare, Mic, MicOff, Search, Leaf, ShieldAlert, Trash2, CheckCircle, GitFork } from "lucide-react";
+import { ArrowUp, Image as ImageIcon, Settings, ListChecks, Map, AlertTriangle, Paperclip, MessageSquare, Mic, MicOff, Search, Leaf, ShieldAlert, Trash2, CheckCircle, GitFork, BookOpen } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import WorldMap from "./WorldMap";
 
 const ROCKY_SYSTEM_PROMPT = `You are Rocky, an alien from the Eridian species who has become deeply fascinated with Earth's wildlife and biology. You are a passionate wildlife biologist and zoologist — but you are an alien who is still learning human language and customs.
 
@@ -57,6 +58,189 @@ const DEFAULT_DANGEROUS_SPECIES = [
   { id: 6, name: "Bengal Tiger", threat: "Extreme", location: "Asia", tips: "Large orange cat with black stripes. Silent stalker in high grass.", firstAid: "Do not run. Back away slowly while keeping eye contact. Make loud noise." },
   { id: 7, name: "Box Jellyfish", threat: "Extreme", location: "Australia", tips: "Pale blue, transparent cubozoan. Tentacles cause severe stinging.", firstAid: "Pour vinegar over tentacles for 30 seconds. Perform CPR if breathing ceases." }
 ];
+
+const REGIONAL_ENDEMIC_SPECIES = {
+  na: {
+    name: "North America",
+    description: "Diverse continent stretching from Arctic tundra to volcanic lakes of Mexico, featuring ancient relic species and rare birds.",
+    species: [
+      {
+        name: "California Condor",
+        scientificName: "Gymnogyps californianus",
+        status: "Critically Endangered",
+        rarity: "Rarest land bird in North America",
+        description: "Largest North American land bird. Incredible wingspan of 3 meters. Rocky think it looks like giant black flying sky-beast from Outer Rim!",
+        details: "Rocky's analysis shows only around 500 left in the wild. They feed on large carrion and play a vital ecological role as cleaners."
+      },
+      {
+        name: "Axolotl",
+        scientificName: "Ambystoma mexicanum",
+        status: "Critically Endangered",
+        rarity: "Endemic to Lake Xochimilco, Mexico",
+        description: "A permanent larva salamander that never grows up (neoteny). They can regenerate limbs, organs, and even parts of their brain! Rocky is amazed! Eridians need this superpower, yes yes!",
+        details: "Virtually extinct in the wild due to water pollution and introduced fish. Possesses incredible scientific value for regeneration research."
+      },
+      {
+        name: "Vancouver Island Marmot",
+        scientificName: "Marmota vancouverensis",
+        status: "Critically Endangered",
+        rarity: "Canada's rarest mammal",
+        description: "A large squirrel-like burrowing rodent found only in the subalpine meadows of Vancouver Island. Extremely cute, *click click*!",
+        details: "Predated by cougars and wolves. Captive breeding programs are currently keeping the species from total extinction."
+      }
+    ]
+  },
+  sa: {
+    name: "South America",
+    description: "Home of the massive Amazon basin and the Galapagos Islands, containing unparalleled evolutionary uniqueness.",
+    species: [
+      {
+        name: "Galápagos Giant Tortoise",
+        scientificName: "Chelonoidis niger",
+        status: "Vulnerable / Endangered",
+        rarity: "Endemic to Galápagos Islands",
+        description: "Massive reptiles living over 100 years. They walk very slow, like Eridian stone-crabs. Charles Darwin studied them!",
+        details: "Exploited by sailors for meat in the 19th century. Now protected by strict conservation zones and artificial breeding facilities."
+      },
+      {
+        name: "Golden Lion Tamarin",
+        scientificName: "Leontopithecus rosalia",
+        status: "Endangered",
+        rarity: "Atlantic Forest endemic (Brazil)",
+        description: "Small monkey with a striking mane of golden fur. They look like tiny suns leaping through the green canopy! Highly social, *click click*!",
+        details: "Threatened by severe forest fragmentation. Reintroduction programs have successfully increased their numbers in the wild."
+      },
+      {
+        name: "Pink River Dolphin",
+        scientificName: "Inia geoffrensis",
+        status: "Endangered",
+        rarity: "Amazon River basin endemic",
+        description: "Also known as Boto. Warm pink color. They can rotate their necks to navigate through flooded forest branches. Mind-blowing, yes!",
+        details: "Their pink hue is caused by scar tissue from play or fighting. Threatened by mercury pollution from gold mining and river dams."
+      }
+    ]
+  },
+  eu: {
+    name: "Europe",
+    description: "An ancient landscape populated by Europe's rarest felines, cave dwellers, and heavy forest bison.",
+    species: [
+      {
+        name: "Iberian Lynx",
+        scientificName: "Lynx pardinus",
+        status: "Endangered / Vulnerable",
+        rarity: "Rarest wild cat species on Earth",
+        description: "Medium-sized cat with a spotted coat, short tail, and ear tufts. Rocky think it has face of very serious philosopher.",
+        details: "Once down to under 100 individuals, conservation efforts have brought them back to over 1,000. Diet consists almost entirely of wild rabbits."
+      },
+      {
+        name: "Saiga Antelope",
+        scientificName: "Saiga tatarica",
+        status: "Near Threatened",
+        rarity: "Eurasian Steppe specialist",
+        description: "Has a giant bulbous inflatable nose (proboscis) that filters dust and warms cold winter air. Rocky nose is smaller, but also filters space dust, *click*!",
+        details: "Experienced a massive die-off in 2015 due to bacteria triggered by humidity. Undergoing recovery in Kazakhstan steppes."
+      },
+      {
+        name: "Olm",
+        scientificName: "Proteus anguinus",
+        status: "Vulnerable",
+        rarity: "Endemic to Dinaric Alps caves",
+        description: "Blind cave salamander with pale skin and external red gills. Known as the 'Human Fish'. Can live up to 10 years without eating! Ultimate survivalist!",
+        details: "Lives in complete darkness in underwater caves of Slovenia and Croatia. Highly sensitive to water pollution."
+      }
+    ]
+  },
+  af: {
+    name: "Africa",
+    description: "Diverse savanna, rainforest, and island biomes containing rare mountain primates and isolated island lemurs.",
+    species: [
+      {
+        name: "Ring-tailed Lemur",
+        scientificName: "Lemur catta",
+        status: "Endangered",
+        rarity: "Endemic to Madagascar",
+        description: "Primate with distinctive black-and-white ringed tail. Madagascar was separated from Africa for 80 million years, creating Lemur wonderland, *click*!",
+        details: "Madagascar holds 100% of the world's wild lemurs. Habitat loss from slash-and-burn agriculture is their primary threat."
+      },
+      {
+        name: "Ethiopian Wolf",
+        scientificName: "Canis simensis",
+        status: "Endangered",
+        rarity: "Africa's rarest canid",
+        description: "Reddish-orange fur with white markings. Lives in high-altitude afro-alpine grasslands. Specialist hunter of giant mole-rats!",
+        details: "Fewer than 500 remain, split into isolated populations. Main threats are habitat loss, domestic dogs, and fragmentation."
+      },
+      {
+        name: "Shoebill Stork",
+        scientificName: "Balaeniceps rex",
+        status: "Vulnerable",
+        rarity: "East African swamp specialist",
+        description: "Huge bird with a massive shoe-shaped bill and a dinosaur-like stare. Stays completely still for hours, then strikes like lightning! Terrifying, *click click*!",
+        details: "Feeds on lungfish, baby crocodiles, and snakes. Nesting sites are threatened by fire, cattle grazing, and illegal trade."
+      }
+    ]
+  },
+  as: {
+    name: "Asia",
+    description: "Vast continent containing high-altitude snow leopards, volcanic dragons, and bamboo-forest giants.",
+    species: [
+      {
+        name: "Giant Panda",
+        scientificName: "Ailuropoda melanoleuca",
+        status: "Vulnerable",
+        rarity: "Endemic to South Central China",
+        description: "Chubby bear with black patches around eyes. Eats 12 to 38 kilograms of bamboo every single day! Bamboo is grass, not meat. Rocky love bamboo scent, yes!",
+        details: "Conservation efforts (including reforestation) helped raise their status from Endangered to Vulnerable. Their digestive tract is still carnivore-like."
+      },
+      {
+        name: "Komodo Dragon",
+        scientificName: "Varanus komodoensis",
+        status: "Endangered",
+        rarity: "Endemic to Lesser Sunda Islands, Indonesia",
+        description: "Largest living species of lizard, growing up to 3 meters. Possesses toxic bite. Rocky think they are like mini-dinosaurs from ancient Earth history!",
+        details: "Protected in Komodo National Park. Threatened by rising sea levels and habitat encroachment outside park boundaries."
+      },
+      {
+        name: "Snow Leopard",
+        scientificName: "Panthera uncia",
+        status: "Vulnerable",
+        rarity: "High Central Asia mountain specialist",
+        description: "Ghost of the Mountains. Has a thick tail used for balance and as a blanket in freezing temperatures. Gorgeous white fur, *click*!",
+        details: "Adapted to steep, rugged terrains above 3,000 meters. Poaching and loss of natural prey are ongoing challenges."
+      }
+    ]
+  },
+  oc: {
+    name: "Oceania",
+    description: "Australia, New Zealand, and surrounding island nations featuring isolated monotremes, flightless birds, and marsupials.",
+    species: [
+      {
+        name: "Platypus",
+        scientificName: "Ornithorhynchus anatinus",
+        status: "Near Threatened",
+        rarity: "Endemic to Eastern Australia",
+        description: "Has duck bill, beaver tail, otter feet, lays eggs, and has venomous spur! Rocky is convinced this is genetic experiment by Eridian scientists! Incredible creature, *click*!",
+        details: "One of only five surviving species of monotremes (mammals that lay eggs). Detects prey using electroreception in muddy water."
+      },
+      {
+        name: "Kakapo",
+        scientificName: "Strigops habroptila",
+        status: "Critically Endangered",
+        rarity: "World's only flightless parrot (New Zealand)",
+        description: "Large, green, nocturnal parrot that cannot fly, only climbs and glides. Smells like sweet honey/flowers! Rocky nose loves this smell!",
+        details: "Fewer than 250 individuals left on predator-free sanctuary islands. Known for their low-frequency 'booming' mating calls."
+      },
+      {
+        name: "Tasmanian Devil",
+        scientificName: "Sarcophilus harrisii",
+        status: "Endangered",
+        rarity: "Endemic to Tasmania",
+        description: "World's largest surviving carnivorous marsupial. Known for loud screeches and powerful bite force relative to body size. Very cranky, *click click*!",
+        details: "Decimated by Devil Facial Tumor Disease (DFTD), a contagious cancer. Breeding programs and vaccine research are active."
+      }
+    ]
+  }
+};
 
 const playSynthSound = (type = 'click') => {
   try {
@@ -233,6 +417,7 @@ export default function App() {
   const [apiKey, setApiKey] = useState(() => localStorage.getItem("groq_api_key") || "");
   const [showSettings, setShowSettings] = useState(!localStorage.getItem("groq_api_key"));
   const [mode, setMode] = useState("chat"); // chat, fieldLog, lookup, checklist, quickRef
+  const [selectedMapRegion, setSelectedMapRegion] = useState("na");
   
   // Field Log State
   const [fieldLogs, setFieldLogs] = useState(() => JSON.parse(localStorage.getItem("rocky_field_logs") || "[]"));
@@ -370,17 +555,20 @@ export default function App() {
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() && !imageBase64) return;
+  const sendMessage = async (overrideText) => {
+    const textToSubmit = typeof overrideText === 'string' ? overrideText : input;
+    if (!textToSubmit.trim() && !imageBase64) return;
     if (!apiKey) {
       setShowSettings(true);
       return;
     }
 
-    const userMessage = { role: "user", content: input.trim(), image: imageBase64 };
+    const userMessage = { role: "user", content: textToSubmit.trim(), image: imageBase64 };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    setInput("");
+    if (typeof overrideText !== 'string') {
+      setInput("");
+    }
     setImageBase64(null);
     setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
@@ -837,7 +1025,8 @@ export default function App() {
           { id: "checklist", icon: <ListChecks size={16}/>, label: "Checklist" },
           { id: "quickRef", icon: <ShieldAlert size={16}/>, label: "Quick Ref" },
           { id: "taxonomy", icon: <GitFork size={16}/>, label: "Taxonomy" },
-          { id: "fieldLog", icon: <Map size={16}/>, label: "Field Log" }
+          { id: "map", icon: <Map size={16}/>, label: "Map" },
+          { id: "fieldLog", icon: <BookOpen size={16}/>, label: "Field Log" }
         ].map(m => (
           <button 
             key={m.id} 
@@ -1432,6 +1621,222 @@ export default function App() {
                   </div>
                 ));
               })()}
+            </div>
+          </div>
+        )}
+
+        {/* MAP EXPLORER MODE */}
+        {mode === "map" && (
+          <div style={{ height: "100%", overflowY: "auto", padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
+            <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>🗺️ Biogeographical Map Explorer</h2>
+            <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "24px" }}>
+              *click click* Click on any region on the map below to discover Rocky's records of endemic or rare Earth species!
+            </p>
+
+            <div className="map-grid-responsive">
+              {/* Left Column: Interactive Map */}
+              <div style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "20px", boxShadow: "0 4px 12px rgba(0,0,0,0.02)", display: "flex", flexDirection: "column", gap: "16px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "14px", fontWeight: "bold", color: "var(--text-secondary)" }}>
+                    Selected Region: <span style={{ color: "var(--brand-active)" }}>{REGIONAL_ENDEMIC_SPECIES[selectedMapRegion]?.name || "None"}</span>
+                  </span>
+                  {selectedMapRegion && (
+                    <button 
+                      onClick={() => { setSelectedMapRegion(""); playSynthSound('click'); }} 
+                      style={{ background: "transparent", border: "none", color: "var(--brand-active)", cursor: "pointer", fontSize: "12px", fontWeight: "bold" }}
+                    >
+                      Clear Selection
+                    </button>
+                  )}
+                </div>
+                
+                <WorldMap 
+                  selectedRegion={selectedMapRegion} 
+                  onRegionClick={(region) => {
+                    setSelectedMapRegion(region);
+                    playSynthSound('click');
+                  }} 
+                />
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", marginTop: "8px" }}>
+                  {Object.entries(REGIONAL_ENDEMIC_SPECIES).map(([code, reg]) => (
+                    <button
+                      key={code}
+                      onClick={() => { setSelectedMapRegion(code); playSynthSound('click'); }}
+                      style={{
+                        padding: "6px 12px",
+                        borderRadius: "14px",
+                        border: "1px solid var(--input-border)",
+                        background: selectedMapRegion === code ? "var(--brand-active)" : "var(--bg-main)",
+                        color: selectedMapRegion === code ? "#ffffff" : "var(--text-primary)",
+                        fontSize: "12px",
+                        fontWeight: "500",
+                        cursor: "pointer",
+                        transition: "all 0.2s"
+                      }}
+                    >
+                      {reg.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Right Column: Species List / Region Details */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {selectedMapRegion ? (
+                  <div style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "24px", height: "100%", display: "flex", flexDirection: "column" }}>
+                    <div style={{ borderBottom: "2px solid var(--border-color)", paddingBottom: "16px", marginBottom: "20px" }}>
+                      <h3 style={{ fontSize: "20px", fontWeight: "bold", color: "var(--text-primary)", margin: "0 0 6px 0" }}>
+                        📍 {REGIONAL_ENDEMIC_SPECIES[selectedMapRegion].name}
+                      </h3>
+                      <p style={{ color: "var(--text-secondary)", fontSize: "13px", lineHeight: "1.5", margin: 0 }}>
+                        {REGIONAL_ENDEMIC_SPECIES[selectedMapRegion].description}
+                      </p>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "16px", overflowY: "auto", maxHeight: "500px", paddingRight: "4px" }}>
+                      {REGIONAL_ENDEMIC_SPECIES[selectedMapRegion].species.map((spec) => (
+                        <div 
+                          key={spec.name} 
+                          style={{ 
+                            background: "var(--bg-main)", 
+                            border: "1px solid var(--input-border)", 
+                            borderRadius: "12px", 
+                            padding: "16px", 
+                            boxShadow: "0 2px 6px rgba(0,0,0,0.01)" 
+                          }}
+                        >
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px", marginBottom: "8px" }}>
+                            <div>
+                              <h4 style={{ fontSize: "16px", fontWeight: "bold", color: "var(--text-primary)", margin: 0 }}>{spec.name}</h4>
+                              <span style={{ fontSize: "12px", color: "var(--brand-active)", fontStyle: "italic" }}>{spec.scientificName}</span>
+                            </div>
+                            <span 
+                              style={{ 
+                                padding: "4px 8px", 
+                                background: spec.status.includes("Critically") ? "#fee2e2" : spec.status.includes("Endangered") ? "#fef3c7" : "#dbeafe", 
+                                color: spec.status.includes("Critically") ? "#b91c1c" : spec.status.includes("Endangered") ? "#b45309" : "#1d4ed8", 
+                                borderRadius: "4px", 
+                                fontSize: "11px", 
+                                fontWeight: "bold" 
+                              }}
+                            >
+                              {spec.status.toUpperCase()}
+                            </span>
+                          </div>
+
+                          <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", fontWeight: "500" }}>
+                            🏷️ {spec.rarity}
+                          </div>
+
+                          <p style={{ color: "var(--text-secondary)", fontSize: "13px", fontStyle: "italic", borderLeft: "3px solid var(--brand-active)", paddingLeft: "10px", margin: "0 0 12px 0", lineHeight: "1.4" }}>
+                            *click* "{spec.description}"
+                          </p>
+
+                          <p style={{ color: "var(--text-primary)", fontSize: "13px", margin: "0 0 16px 0", lineHeight: "1.5" }}>
+                            {spec.details}
+                          </p>
+
+                          {/* Quick Actions Row */}
+                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            <button
+                              onClick={() => {
+                                setMode("chat");
+                                playSynthSound('click');
+                                sendMessage(`Tell me about the ${spec.name} (${spec.scientificName}), Rocky!`);
+                              }}
+                              style={{
+                                flex: 1,
+                                minWidth: "100px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "6px",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                border: "none",
+                                background: "var(--brand-active)",
+                                color: "#ffffff",
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                cursor: "pointer",
+                                transition: "opacity 0.2s"
+                              }}
+                              title="Ask Rocky about this in chat"
+                            >
+                              <MessageSquare size={13} /> Ask Rocky
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setLookupQuery(spec.name);
+                                handleSpeciesLookup(spec.name);
+                                setMode("lookup");
+                                playSynthSound('click');
+                              }}
+                              style={{
+                                flex: 1,
+                                minWidth: "100px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "6px",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                border: "1px solid var(--input-border)",
+                                background: "var(--input-bg)",
+                                color: "var(--text-primary)",
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                cursor: "pointer"
+                              }}
+                              title="Look up in Species database"
+                            >
+                              <Search size={13} /> Database
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setTaxonomyQuery(spec.name);
+                                handleTaxonomyLookup(spec.name);
+                                setMode("taxonomy");
+                                playSynthSound('click');
+                              }}
+                              style={{
+                                flex: 1,
+                                minWidth: "100px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: "6px",
+                                padding: "8px 12px",
+                                borderRadius: "8px",
+                                border: "1px solid var(--input-border)",
+                                background: "var(--input-bg)",
+                                color: "var(--text-primary)",
+                                fontSize: "12px",
+                                fontWeight: "bold",
+                                cursor: "pointer"
+                              }}
+                              title="Look up biological taxonomy tree"
+                            >
+                              <GitFork size={13} /> Taxonomy
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: "16px", height: "100%", minHeight: "300px" }}>
+                    <span style={{ fontSize: "40px" }}>🗺️</span>
+                    <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "var(--text-primary)", margin: 0 }}>Select a Region</h3>
+                    <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: 0, maxWidth: "250px", textAlign: "center", lineHeight: "1.5" }}>
+                      *click click* Select a region on the map or click the buttons to explore Rocky's regional wildlife logs.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
