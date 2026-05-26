@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, Image as ImageIcon, Settings, ListChecks, Map, AlertTriangle, Paperclip, MessageSquare, Mic, MicOff, Search, Leaf, ShieldAlert, Trash2, CheckCircle } from "lucide-react";
+import { ArrowUp, Image as ImageIcon, Settings, ListChecks, Map, AlertTriangle, Paperclip, MessageSquare, Mic, MicOff, Search, Leaf, ShieldAlert, Trash2, CheckCircle, GitFork } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -259,6 +259,12 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [showAddSpeciesForm, setShowAddSpeciesForm] = useState(false);
   const [newSpeciesForm, setNewSpeciesForm] = useState({ name: "", threat: "High", location: "", tips: "", firstAid: "" });
+
+  // Taxonomy State
+  const [taxonomyQuery, setTaxonomyQuery] = useState("");
+  const [taxonomyResult, setTaxonomyResult] = useState(null);
+  const [taxonomyLoading, setTaxonomyLoading] = useState(false);
+  const [taxonomyError, setTaxonomyError] = useState("");
 
   const [imageBase64, setImageBase64] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -700,6 +706,84 @@ export default function App() {
     localStorage.setItem("rocky_dangerous_species", JSON.stringify(updated));
   };
 
+  const SIMULATED_TAXONOMY = {
+    lion: { commonName: "Lion", kingdom: "Animalia", phylum: "Chordata", class_: "Mammalia", order: "Carnivora", family: "Felidae", genus: "Panthera", species: "Panthera leo", rockyNote: "King of Earth savanna! Rocky very impressed by mane. Erid has no manes.", funFact: "A lion's roar can be heard from 8 km away. On Erid, we communicate by bioluminescent skin pulses — much quieter!" },
+    cat: { commonName: "Domestic Cat", kingdom: "Animalia", phylum: "Chordata", class_: "Mammalia", order: "Carnivora", family: "Felidae", genus: "Felis", species: "Felis catus", rockyNote: "Small lion that live in human house! Very confusing to Rocky.", funFact: "Cats spend 70% of their lives sleeping. Rocky also enjoys this activity during Eridian winter." },
+    eagle: { commonName: "Bald Eagle", kingdom: "Animalia", phylum: "Chordata", class_: "Aves", order: "Accipitriformes", family: "Accipitridae", genus: "Haliaeetus", species: "Haliaeetus leucocephalus", rockyNote: "Flying hunter with white head! Can see 4x better than Rocky. Incredible!", funFact: "A bald eagle can spot a rabbit from 3.2 km away. Eridians evolved sonar instead of super-vision." },
+    dolphin: { commonName: "Bottlenose Dolphin", kingdom: "Animalia", phylum: "Chordata", class_: "Mammalia", order: "Artiodactyla", family: "Delphinidae", genus: "Tursiops", species: "Tursiops truncatus", rockyNote: "Water mammal who smile always! They use sound to see, like some Eridians!", funFact: "Dolphins have names for each other — unique signature whistles. Rocky finds this very relatable!" },
+    elephant: { commonName: "African Elephant", kingdom: "Animalia", phylum: "Chordata", class_: "Mammalia", order: "Proboscidea", family: "Elephantidae", genus: "Loxodonta", species: "Loxodonta africana", rockyNote: "Biggest land animal! Nose is also a hand! Rocky very envious of trunk.", funFact: "Elephants can communicate through infrasound over 10 km. Rocky's species also uses low-frequency vibrations." },
+    octopus: { commonName: "Common Octopus", kingdom: "Animalia", phylum: "Mollusca", class_: "Cephalopoda", order: "Octopoda", family: "Octopodidae", genus: "Octopus", species: "Octopus vulgaris", rockyNote: "Eight arms, three hearts, blue blood! Most Eridian-like Earth creature Rocky has found!", funFact: "An octopus has 9 brains — one central and one per arm. This is similar to Eridian distributed neural architecture!" },
+    shark: { commonName: "Great White Shark", kingdom: "Animalia", phylum: "Chordata", class_: "Chondrichthyes", order: "Lamniformes", family: "Lamnidae", genus: "Carcharodon", species: "Carcharodon carcharias", rockyNote: "Apex ocean predator! Has been on Earth 400 million years. Much respect.", funFact: "Great white sharks can detect one drop of blood in 100 liters of water. Rocky's species detects chemical signals in air similarly." },
+    "blue whale": { commonName: "Blue Whale", kingdom: "Animalia", phylum: "Chordata", class_: "Mammalia", order: "Artiodactyla", family: "Balaenopteridae", genus: "Balaenoptera", species: "Balaenoptera musculus", rockyNote: "BIGGEST animal ever on Earth! Heart size of a car! Rocky cannot comprehend this size.", funFact: "A blue whale's heart beats only 2 times per minute when diving. Rocky's species has 4 hearts, all beating fast." },
+  };
+
+  const parseTaxonomyFromAI = (text) => {
+    const get = (label) => {
+      const regex = new RegExp(`${label}[:\\s]+([^\\n]+)`, 'i');
+      const match = regex.exec(text);
+      return match ? match[1].replace(/[*_`]/g, '').trim() : '?';
+    };
+    return {
+      commonName: get('Common Name') || get('Animal'),
+      kingdom: get('Kingdom'),
+      phylum: get('Phylum'),
+      class_: get('Class'),
+      order: get('Order'),
+      family: get('Family'),
+      genus: get('Genus'),
+      species: get('Species'),
+      rockyNote: get("Rocky'?s? Note") || get('Note'),
+      funFact: get('Fun Fact') || get('Eridian Fact'),
+    };
+  };
+
+  const handleTaxonomyLookup = async (q = taxonomyQuery) => {
+    const target = q.trim();
+    if (!target) return;
+    setTaxonomyError("");
+    setTaxonomyResult(null);
+    setTaxonomyLoading(true);
+
+    if (!apiKey) {
+      setTimeout(() => {
+        const lower = target.toLowerCase();
+        const result = SIMULATED_TAXONOMY[lower] || {
+          commonName: target.charAt(0).toUpperCase() + target.slice(1),
+          kingdom: "Animalia", phylum: "Chordata", class_: "?", order: "?", family: "?", genus: "?",
+          species: `? ${target.toLowerCase()}`,
+          rockyNote: `Rocky does not have offline data for ${target}. Enter API key for full lookup!`,
+          funFact: "Add your Groq API key in Settings to unlock live taxonomy for any creature on Earth!"
+        };
+        setTaxonomyResult(result);
+        setTaxonomyLoading(false);
+      }, 800);
+      return;
+    }
+
+    try {
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: "meta-llama/llama-4-scout-17b-16e-instruct",
+          max_tokens: 512,
+          messages: [
+            { role: "system", content: ROCKY_SYSTEM_PROMPT },
+            { role: "user", content: `Give me the complete taxonomic classification for: ${target}. Format EXACTLY like this (one per line):\nCommon Name: ...\nKingdom: ...\nPhylum: ...\nClass: ...\nOrder: ...\nFamily: ...\nGenus: ...\nSpecies: ...\nRocky's Note: (one sentence alien reaction in Rocky's voice)\nFun Fact: (one interesting biological fact)` }
+          ]
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error?.message || "Groq API error");
+      const parsed = parseTaxonomyFromAI(data.choices[0].message.content);
+      setTaxonomyResult(parsed);
+    } catch (err) {
+      setTaxonomyError(err.message);
+    } finally {
+      setTaxonomyLoading(false);
+    }
+  };
+
   const markdownComponents = {
     h1: ({children}) => <h1 style={{ fontSize: "1.2em", fontWeight: 700, color: "#79c0ff", margin: "12px 0 6px", borderBottom: "1px solid #30363d", paddingBottom: "4px" }}>{children}</h1>,
     h2: ({children}) => <h2 style={{ fontSize: "1.05em", fontWeight: 700, color: "#79c0ff", margin: "12px 0 4px" }}>{children}</h2>,
@@ -749,10 +833,11 @@ export default function App() {
       <div style={{ display: "flex", gap: "8px", padding: "12px 24px", background: "var(--bg-main)", borderBottom: "1px solid var(--border-color)", overflowX: "auto" }}>
         {[
           { id: "chat", icon: <MessageSquare size={16}/>, label: "Chat" },
-          { id: "fieldLog", icon: <Map size={16}/>, label: "Field Log" },
           { id: "lookup", icon: <Search size={16}/>, label: "Species" },
           { id: "checklist", icon: <ListChecks size={16}/>, label: "Checklist" },
-          { id: "quickRef", icon: <ShieldAlert size={16}/>, label: "Quick Ref" }
+          { id: "quickRef", icon: <ShieldAlert size={16}/>, label: "Quick Ref" },
+          { id: "taxonomy", icon: <GitFork size={16}/>, label: "Taxonomy" },
+          { id: "fieldLog", icon: <Map size={16}/>, label: "Field Log" }
         ].map(m => (
           <button 
             key={m.id} 
@@ -1348,6 +1433,77 @@ export default function App() {
                 ));
               })()}
             </div>
+          </div>
+        )}
+
+        {/* TAXONOMY MODE */}
+        {mode === "taxonomy" && (
+          <div style={{ height: "100%", overflowY: "auto", padding: "24px", maxWidth: "700px", margin: "0 auto", width: "100%" }}>
+            <h2 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>🧬 Taxonomy Explorer</h2>
+            <p style={{ color: "var(--text-secondary)", fontSize: "13px", marginBottom: "20px" }}>*click* Rocky show you full classification tree of any Earth creature!</p>
+
+            <div style={{ display: "flex", gap: "8px", marginBottom: "24px" }}>
+              <input
+                value={taxonomyQuery}
+                onChange={e => setTaxonomyQuery(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleTaxonomyLookup()}
+                placeholder="e.g. Lion, Eagle, Blue Whale..."
+                style={{ flex: 1, padding: "10px 14px", borderRadius: "8px", border: "1px solid var(--input-border)", background: "var(--input-bg)", color: "var(--text-primary)", fontSize: "14px" }}
+              />
+              <button
+                onClick={() => handleTaxonomyLookup()}
+                disabled={taxonomyLoading}
+                style={{ padding: "10px 20px", borderRadius: "8px", border: "none", background: "var(--brand-active)", color: "#fff", fontWeight: "bold", cursor: "pointer", fontSize: "14px" }}
+              >
+                {taxonomyLoading ? "..." : "Classify"}
+              </button>
+            </div>
+
+            {taxonomyError && (
+              <div style={{ background: "#3d1f1f", border: "1px solid #ef4444", borderRadius: "8px", padding: "12px", color: "#ef4444", fontSize: "13px", marginBottom: "16px" }}>
+                ⚠️ {taxonomyError}
+              </div>
+            )}
+
+            {taxonomyResult && (
+              <div style={{ background: "#0d1117", border: "1px solid #30363d", borderRadius: "12px", padding: "24px" }}>
+                <h3 style={{ fontSize: "20px", fontWeight: 700, color: "#79c0ff", marginBottom: "6px" }}>{taxonomyResult.commonName}</h3>
+                <p style={{ color: "#b5936a", fontStyle: "italic", fontSize: "14px", marginBottom: "24px" }}>*click click* {taxonomyResult.rockyNote}</p>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
+                  {[
+                    { rank: "Kingdom",  emoji: "🌍", value: taxonomyResult.kingdom,  color: "#ff7b72" },
+                    { rank: "Phylum",   emoji: "🧩", value: taxonomyResult.phylum,   color: "#ffa657" },
+                    { rank: "Class",    emoji: "📦", value: taxonomyResult.class_,   color: "#f0e060" },
+                    { rank: "Order",    emoji: "📋", value: taxonomyResult.order,    color: "#7ee787" },
+                    { rank: "Family",   emoji: "👨‍👩‍👧", value: taxonomyResult.family,   color: "#79c0ff" },
+                    { rank: "Genus",    emoji: "🔬", value: taxonomyResult.genus,    color: "#d2a8ff" },
+                    { rank: "Species",  emoji: "🧬", value: taxonomyResult.species,  color: "#ff7b72" },
+                  ].map((row, i) => (
+                    <div key={row.rank} style={{ display: "flex", alignItems: "stretch" }}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginRight: "16px", width: "20px" }}>
+                        <div style={{ width: "2px", background: i === 0 ? "transparent" : "#30363d", flex: "0 0 16px" }} />
+                        <div style={{ width: "12px", height: "12px", borderRadius: "50%", background: row.color, flexShrink: 0 }} />
+                        <div style={{ width: "2px", background: "#30363d", flex: 1, minHeight: "16px" }} />
+                      </div>
+                      <div style={{ paddingBottom: "16px", paddingTop: "4px" }}>
+                        <span style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{row.emoji} {row.rank}</span>
+                        <div style={{ fontSize: "16px", fontWeight: 600, color: row.color, fontStyle: row.rank === "Species" || row.rank === "Genus" ? "italic" : "normal" }}>
+                          {row.value}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {taxonomyResult.funFact && (
+                  <div style={{ marginTop: "16px", background: "#161b22", borderLeft: "3px solid #b5936a", padding: "12px 16px", borderRadius: "0 8px 8px 0" }}>
+                    <span style={{ color: "#b5936a", fontWeight: 700, fontSize: "12px" }}>🪐 ROCKY'S ERIDIAN FACT</span>
+                    <p style={{ color: "#c9d1d9", fontSize: "13px", margin: "4px 0 0" }}>{taxonomyResult.funFact}</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
 
