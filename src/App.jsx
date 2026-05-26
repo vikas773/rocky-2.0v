@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, Image as ImageIcon, Settings, ListChecks, Map, AlertTriangle, Paperclip, MessageSquare, Mic, MicOff, Search, Leaf, ShieldAlert, Trash2, CheckCircle, GitFork, BookOpen } from "lucide-react";
+import { ArrowUp, Image as ImageIcon, Settings, ListChecks, Map, AlertTriangle, Paperclip, MessageSquare, Mic, MicOff, Search, Leaf, ShieldAlert, Trash2, CheckCircle, GitFork, BookOpen, MapPin, Tag, Globe, Layers, Package, ClipboardList, Users, Microscope, Dna, Compass } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import WorldMap from "./WorldMap";
@@ -1162,7 +1162,7 @@ export default function App() {
                     <strong style={{ color: "var(--text-primary)" }}>{log.species} <span style={{ color: "var(--text-secondary)", fontWeight: "normal" }}>(x{log.count})</span></strong>
                     <span style={{ color: "var(--text-secondary)", fontSize: "14px" }}>{log.date}</span>
                   </div>
-                  <div style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "8px" }}>📍 {log.location}</div>
+                  <div style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "8px", display: "flex", alignItems: "center", gap: "4px" }}><MapPin size={14} /> {log.location}</div>
                   <div style={{ color: "var(--text-primary)", fontSize: "14px" }}>{log.behavior}</div>
                 </div>
               ))}
@@ -1273,7 +1273,7 @@ export default function App() {
                           alignItems: "center",
                           gap: "8px"
                         }}>
-                          {isRockyNote ? "🪐 " : "❯ "}{sectionName.toUpperCase()}
+                          {isRockyNote ? <Globe size={14} color="#b5936a" /> : <span>❯</span>} {sectionName.toUpperCase()}
                         </h4>
                         <div style={{ 
                           color: "#c9d1d9", 
@@ -1602,8 +1602,8 @@ export default function App() {
                       <span style={{ padding: "4px 8px", background: spec.threat === 'Extreme' ? "#fee2e2" : spec.threat === 'High' ? "#fef3c7" : "#dbeafe", color: spec.threat === 'Extreme' ? "#b91c1c" : spec.threat === 'High' ? "#b45309" : "#1d4ed8", borderRadius: "4px", fontSize: "11px", fontWeight: "bold" }}>
                         THREAT: {spec.threat.toUpperCase()}
                       </span>
-                      <span style={{ padding: "4px 8px", background: "var(--bubble-user)", color: "var(--text-secondary)", borderRadius: "4px", fontSize: "11px", fontWeight: "bold" }}>
-                        📍 {spec.location}
+                      <span style={{ padding: "4px 8px", background: "var(--bubble-user)", color: "var(--text-secondary)", borderRadius: "4px", fontSize: "11px", fontWeight: "bold", display: "inline-flex", alignItems: "center", gap: "3px" }}>
+                        <MapPin size={11} /> {spec.location}
                       </span>
                     </div>
 
@@ -1627,7 +1627,9 @@ export default function App() {
         {/* MAP EXPLORER MODE */}
         {mode === "map" && (
           <div style={{ height: "100%", overflowY: "auto", padding: "24px", maxWidth: "1100px", margin: "0 auto", width: "100%" }}>
-            <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px" }}>🗺️ Biogeographical Map Explorer</h2>
+            <h2 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "4px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Compass size={24} color="var(--brand-active)" /> Biogeographical Map Explorer
+            </h2>
             <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "24px" }}>
               *click click* Click on any region on the map below to discover Rocky's records of endemic or rare Earth species!
             </p>
@@ -1685,8 +1687,8 @@ export default function App() {
                 {selectedMapRegion ? (
                   <div style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "24px", height: "100%", display: "flex", flexDirection: "column" }}>
                     <div style={{ borderBottom: "2px solid var(--border-color)", paddingBottom: "16px", marginBottom: "20px" }}>
-                      <h3 style={{ fontSize: "20px", fontWeight: "bold", color: "var(--text-primary)", margin: "0 0 6px 0" }}>
-                        📍 {REGIONAL_ENDEMIC_SPECIES[selectedMapRegion].name}
+                      <h3 style={{ fontSize: "20px", fontWeight: "bold", color: "var(--text-primary)", margin: "0 0 6px 0", display: "flex", alignItems: "center", gap: "6px" }}>
+                        <MapPin size={20} color="var(--brand-active)" /> {REGIONAL_ENDEMIC_SPECIES[selectedMapRegion].name}
                       </h3>
                       <p style={{ color: "var(--text-secondary)", fontSize: "13px", lineHeight: "1.5", margin: 0 }}>
                         {REGIONAL_ENDEMIC_SPECIES[selectedMapRegion].description}
@@ -1724,8 +1726,8 @@ export default function App() {
                             </span>
                           </div>
 
-                          <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", fontWeight: "500" }}>
-                            🏷️ {spec.rarity}
+                          <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px", fontWeight: "500", display: "flex", alignItems: "center", gap: "4px" }}>
+                            <Tag size={12} color="var(--brand-active)" /> {spec.rarity}
                           </div>
 
                           <p style={{ color: "var(--text-secondary)", fontSize: "13px", fontStyle: "italic", borderLeft: "3px solid var(--brand-active)", paddingLeft: "10px", margin: "0 0 12px 0", lineHeight: "1.4" }}>
@@ -1828,7 +1830,7 @@ export default function App() {
                   </div>
                 ) : (
                   <div style={{ background: "var(--input-bg)", border: "1px solid var(--input-border)", borderRadius: "16px", padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", gap: "16px", height: "100%", minHeight: "300px" }}>
-                    <span style={{ fontSize: "40px" }}>🗺️</span>
+                    <Compass size={48} color="var(--brand-active)" style={{ marginBottom: "8px" }} />
                     <h3 style={{ fontSize: "18px", fontWeight: "bold", color: "var(--text-primary)", margin: 0 }}>Select a Region</h3>
                     <p style={{ color: "var(--text-secondary)", fontSize: "13px", margin: 0, maxWidth: "250px", textAlign: "center", lineHeight: "1.5" }}>
                       *click click* Select a region on the map or click the buttons to explore Rocky's regional wildlife logs.
@@ -1864,8 +1866,8 @@ export default function App() {
             </div>
 
             {taxonomyError && (
-              <div style={{ background: "#3d1f1f", border: "1px solid #ef4444", borderRadius: "8px", padding: "12px", color: "#ef4444", fontSize: "13px", marginBottom: "16px" }}>
-                ⚠️ {taxonomyError}
+              <div style={{ background: "#3d1f1f", border: "1px solid #ef4444", borderRadius: "8px", padding: "12px", color: "#ef4444", fontSize: "13px", marginBottom: "16px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <AlertTriangle size={14} /> {taxonomyError}
               </div>
             )}
 
@@ -1876,13 +1878,13 @@ export default function App() {
 
                 <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
                   {[
-                    { rank: "Kingdom",  emoji: "🌍", value: taxonomyResult.kingdom,  color: "#ff7b72" },
-                    { rank: "Phylum",   emoji: "🧩", value: taxonomyResult.phylum,   color: "#ffa657" },
-                    { rank: "Class",    emoji: "📦", value: taxonomyResult.class_,   color: "#f0e060" },
-                    { rank: "Order",    emoji: "📋", value: taxonomyResult.order,    color: "#7ee787" },
-                    { rank: "Family",   emoji: "👨‍👩‍👧", value: taxonomyResult.family,   color: "#79c0ff" },
-                    { rank: "Genus",    emoji: "🔬", value: taxonomyResult.genus,    color: "#d2a8ff" },
-                    { rank: "Species",  emoji: "🧬", value: taxonomyResult.species,  color: "#ff7b72" },
+                    { rank: "Kingdom",  icon: <Globe size={11} style={{ marginRight: "4px" }} />, value: taxonomyResult.kingdom,  color: "#ff7b72" },
+                    { rank: "Phylum",   icon: <Layers size={11} style={{ marginRight: "4px" }} />, value: taxonomyResult.phylum,   color: "#ffa657" },
+                    { rank: "Class",    icon: <Package size={11} style={{ marginRight: "4px" }} />, value: taxonomyResult.class_,   color: "#f0e060" },
+                    { rank: "Order",    icon: <ClipboardList size={11} style={{ marginRight: "4px" }} />, value: taxonomyResult.order,    color: "#7ee787" },
+                    { rank: "Family",   icon: <Users size={11} style={{ marginRight: "4px" }} />, value: taxonomyResult.family,   color: "#79c0ff" },
+                    { rank: "Genus",    icon: <Microscope size={11} style={{ marginRight: "4px" }} />, value: taxonomyResult.genus,    color: "#d2a8ff" },
+                    { rank: "Species",  icon: <Dna size={11} style={{ marginRight: "4px" }} />, value: taxonomyResult.species,  color: "#ff7b72" },
                   ].map((row, i) => (
                     <div key={row.rank} style={{ display: "flex", alignItems: "stretch" }}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginRight: "16px", width: "20px" }}>
@@ -1891,7 +1893,7 @@ export default function App() {
                         <div style={{ width: "2px", background: "#30363d", flex: 1, minHeight: "16px" }} />
                       </div>
                       <div style={{ paddingBottom: "16px", paddingTop: "4px" }}>
-                        <span style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{row.emoji} {row.rank}</span>
+                        <span style={{ fontSize: "11px", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.08em", display: "inline-flex", alignItems: "center" }}>{row.icon} {row.rank}</span>
                         <div style={{ fontSize: "16px", fontWeight: 600, color: row.color, fontStyle: row.rank === "Species" || row.rank === "Genus" ? "italic" : "normal" }}>
                           {row.value}
                         </div>
@@ -1902,7 +1904,7 @@ export default function App() {
 
                 {taxonomyResult.funFact && (
                   <div style={{ marginTop: "16px", background: "#161b22", borderLeft: "3px solid #b5936a", padding: "12px 16px", borderRadius: "0 8px 8px 0" }}>
-                    <span style={{ color: "#b5936a", fontWeight: 700, fontSize: "12px" }}>🪐 ROCKY'S ERIDIAN FACT</span>
+                    <span style={{ color: "#b5936a", fontWeight: 700, fontSize: "12px", display: "inline-flex", alignItems: "center", gap: "4px" }}><Globe size={12} /> ROCKY'S ERIDIAN FACT</span>
                     <p style={{ color: "#c9d1d9", fontSize: "13px", margin: "4px 0 0" }}>{taxonomyResult.funFact}</p>
                   </div>
                 )}
